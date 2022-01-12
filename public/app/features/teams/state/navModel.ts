@@ -1,8 +1,9 @@
-import { Team, TeamPermissionLevel } from 'app/types';
+import { AccessControlAction, Team, TeamPermissionLevel } from 'app/types';
 import { featureEnabled } from '@grafana/runtime';
 import { NavModelItem, NavModel } from '@grafana/data';
 import config from 'app/core/config';
 import { ProBadge } from 'app/core/components/Upgrade/ProBadge';
+import { contextSrv } from 'app/core/core';
 
 export function buildNavModel(team: Team): NavModelItem {
   const navModel: NavModelItem = {
@@ -12,23 +13,29 @@ export function buildNavModel(team: Team): NavModelItem {
     url: '',
     text: team.name,
     breadcrumbs: [{ title: 'Teams', url: 'org/teams' }],
-    children: [
-      {
-        active: false,
-        icon: 'users-alt',
-        id: `team-members-${team.id}`,
-        text: 'Members',
-        url: `org/teams/edit/${team.id}/members`,
-      },
-      {
-        active: false,
-        icon: 'sliders-v-alt',
-        id: `team-settings-${team.id}`,
-        text: 'Settings',
-        url: `org/teams/edit/${team.id}/settings`,
-      },
-    ],
   };
+
+  navModel.children = [] as NavModelItem[];
+
+  if (contextSrv.hasPermissionInMetadata(AccessControlAction.ActionTeamsPermissionsRead, team)) {
+    navModel.children.push({
+      active: false,
+      icon: 'users-alt',
+      id: `team-members-${team.id}`,
+      text: 'Members',
+      url: `org/teams/edit/${team.id}/members`,
+    });
+  }
+
+  // With FGAC this tab will always be available
+  // With Legacy it will be hidden should the user not see it
+  navModel.children.push({
+    active: false,
+    icon: 'sliders-v-alt',
+    id: `team-settings-${team.id}`,
+    text: 'Settings',
+    url: `org/teams/edit/${team.id}/settings`,
+  });
 
   const teamGroupSync = {
     active: false,
