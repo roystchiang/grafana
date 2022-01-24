@@ -1088,7 +1088,7 @@ type: docker
 ---
 depends_on: []
 kind: pipeline
-name: oss-build-publish-e2e-release
+name: oss-build-e2e-publish-release
 node:
   type: no-parallel
 platform:
@@ -1590,7 +1590,7 @@ volumes:
     medium: memory
 ---
 depends_on:
-- oss-build-publish-e2e-release
+- oss-build-e2e-publish-release
 - oss-test-release
 - oss-integration-tests-release
 kind: pipeline
@@ -2847,7 +2847,7 @@ volumes:
 ---
 depends_on: []
 kind: pipeline
-name: oss-build-publish-e2e-release-branch
+name: oss-build-e2e-publish-release-branch
 node:
   type: no-parallel
 platform:
@@ -3291,7 +3291,7 @@ volumes:
     medium: memory
 ---
 depends_on:
-- oss-build-publish-e2e-release-branch
+- oss-build-e2e-publish-release-branch
 - oss-test-release-branch
 - oss-integration-tests-release-branch
 kind: pipeline
@@ -4175,6 +4175,6 @@ kind: secret
 name: gcp_upload_artifacts_key
 ---
 kind: signature
-hmac: 48619d7057914a4d19e95d347964408e2a43c80b5144328a2336592ffaa1919d
+hmac: f97b8a695295a5684c7ec012becb41f5cdf65e253daa1aec80e4a7755a121654
 
 ...
