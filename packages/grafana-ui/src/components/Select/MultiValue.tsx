@@ -25,7 +25,6 @@ export type MultiValueRemoveProps = {
 export const MultiValueRemove: React.FC<MultiValueRemoveProps> = ({ children, innerProps }) => {
   const theme = useTheme2();
   const styles = getSelectStyles(theme);
-  console.log('this is the MultiValueRemove', { innerProps });
   return (
     <div {...innerProps} className={styles.multiValueRemove}>
       <Icon name="times" size="sm" />
