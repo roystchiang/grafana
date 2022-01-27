@@ -85,6 +85,9 @@ export interface FieldConfig<TOptions = any> {
   // Alternative to empty string
   noValue?: string;
 
+  // Optional icon representing the field
+  icon?: string;
+
   // Panel Specific Values
   custom?: TOptions;
 }
