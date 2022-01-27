@@ -36,12 +36,14 @@ import (
 	"github.com/grafana/grafana/pkg/services/datasourceproxy"
 	"github.com/grafana/grafana/pkg/services/datasources"
 	"github.com/grafana/grafana/pkg/services/encryption"
+	"github.com/grafana/grafana/pkg/services/featuremgmt"
 	"github.com/grafana/grafana/pkg/services/hooks"
 	"github.com/grafana/grafana/pkg/services/libraryelements"
 	"github.com/grafana/grafana/pkg/services/librarypanels"
 	"github.com/grafana/grafana/pkg/services/live"
 	"github.com/grafana/grafana/pkg/services/live/pushhttp"
 	"github.com/grafana/grafana/pkg/services/login"
+	"github.com/grafana/grafana/pkg/services/login/authinfoservice"
 	"github.com/grafana/grafana/pkg/services/ngalert"
 	"github.com/grafana/grafana/pkg/services/notifications"
 	"github.com/grafana/grafana/pkg/services/provisioning"
@@ -78,6 +80,7 @@ type HTTPServer struct {
 	Bus                       bus.Bus
 	RenderService             rendering.Service
 	Cfg                       *setting.Cfg
+	Features                  *featuremgmt.FeatureManager
 	SettingsProvider          setting.Provider
 	HooksService              *hooks.HooksService
 	CacheService              *localcache.CacheService
@@ -121,6 +124,7 @@ type HTTPServer struct {
 	queryDataService          *query.Service
 	serviceAccountsService    serviceaccounts.Service
 	NotificationService       *notifications.NotificationService
+	authInfoService           authinfoservice.Service
 	TeamPermissionsService    *resourcepermissions.Service
 }
 
@@ -140,14 +144,16 @@ func ProvideHTTPServer(opts ServerOptions, cfg *setting.Cfg, routeRegister routi
 	loginService login.Service, accessControl accesscontrol.AccessControl,
 	dataSourceProxy *datasourceproxy.DataSourceProxyService, searchService *search.SearchService,
 	live *live.GrafanaLive, livePushGateway *pushhttp.Gateway, plugCtxProvider *plugincontext.Provider,
-	contextHandler *contexthandler.ContextHandler,
+	contextHandler *contexthandler.ContextHandler, features *featuremgmt.FeatureManager,
 	schemaService *schemaloader.SchemaLoaderService, alertNG *ngalert.AlertNG,
 	libraryPanelService librarypanels.Service, libraryElementService libraryelements.Service,
 	quotaService *quota.QuotaService, socialService social.Service, tracer tracing.Tracer,
 	encryptionService encryption.Internal, updateChecker *updatechecker.Service, searchUsersService searchusers.Service,
 	dataSourcesService *datasources.Service, secretsService secrets.Service, queryDataService *query.Service,
 	teamGuardian teamguardian.TeamGuardian, serviceaccountsService serviceaccounts.Service, notifications *notifications.NotificationService,
+	resourcePermissionServices *resourceservices.ResourceService, authInfoService authinfoservice.Service,
 	resourcePermissionServices *resourceservices.ResourceServices) (*HTTPServer, error) {
+
 	web.Env = cfg.Env
 	m := web.New()
 
@@ -173,6 +179,7 @@ func ProvideHTTPServer(opts ServerOptions, cfg *setting.Cfg, routeRegister routi
 		AuthTokenService:          userTokenService,
 		cleanUpService:            cleanUpService,
 		ShortURLService:           shortURLService,
+		Features:                  features,
 		ThumbService:              thumbService,
 		RemoteCacheService:        remoteCache,
 		ProvisioningService:       provisioningService,
@@ -202,6 +209,7 @@ func ProvideHTTPServer(opts ServerOptions, cfg *setting.Cfg, routeRegister routi
 		queryDataService:          queryDataService,
 		serviceAccountsService:    serviceaccountsService,
 		NotificationService:       notifications,
+		authInfoService:           authInfoService,
 		TeamPermissionsService:    resourcePermissionServices.GetTeamService(),
 	}
 	if hs.Listener != nil {

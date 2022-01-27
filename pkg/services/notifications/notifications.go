@@ -18,6 +18,17 @@ import (
 	"github.com/grafana/grafana/pkg/util"
 )
 
+type WebhookSender interface {
+	SendWebhookSync(ctx context.Context, cmd *models.SendWebhookSync) error
+}
+type EmailSender interface {
+	SendEmailCommandHandlerSync(ctx context.Context, cmd *models.SendEmailCommandSync) error
+}
+type Service interface {
+	WebhookSender
+	EmailSender
+}
+
 var mailTemplates *template.Template
 var tmplResetPassword = "reset_password"
 var tmplSignUpStarted = "signup_started"
@@ -38,7 +49,7 @@ func ProvideService(bus bus.Bus, cfg *setting.Cfg, mailer Mailer, sqlStore *sqls
 	ns.Bus.AddHandler(ns.ValidateResetPasswordCode)
 	ns.Bus.AddHandler(ns.sendEmailCommandHandler)
 
-	ns.Bus.AddHandler(ns.sendEmailCommandHandlerSync)
+	ns.Bus.AddHandler(ns.SendEmailCommandHandlerSync)
 	ns.Bus.AddHandler(ns.SendWebhookSync)
 
 	ns.Bus.AddEventListener(ns.signUpStartedHandler)
@@ -122,7 +133,7 @@ func subjectTemplateFunc(obj map[string]interface{}, value string) string {
 	return ""
 }
 
-func (ns *NotificationService) sendEmailCommandHandlerSync(ctx context.Context, cmd *models.SendEmailCommandSync) error {
+func (ns *NotificationService) SendEmailCommandHandlerSync(ctx context.Context, cmd *models.SendEmailCommandSync) error {
 	message, err := ns.buildEmailMessage(&models.SendEmailCommand{
 		Data:          cmd.Data,
 		Info:          cmd.Info,
