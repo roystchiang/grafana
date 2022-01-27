@@ -11,6 +11,7 @@ import (
 
 var sqlIDAcceptList = map[string]struct{}{
 	"org_user.user_id": {},
+	"team.id":          {},
 }
 
 const denyQuery = " 1 = 0"

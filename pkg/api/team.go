@@ -117,8 +117,11 @@ func (hs *HTTPServer) SearchTeams(c *models.ReqContext) response.Response {
 	}
 
 	var userIdFilter int64
-	if hs.Cfg.EditorsCanAdmin && c.OrgRole != models.ROLE_ADMIN {
-		userIdFilter = c.SignedInUser.UserId
+	// Using accesscontrol the filtering is done based on user permissions
+	if !hs.Features.IsEnabled(featuremgmt.FlagAccesscontrol) {
+		if hs.Cfg.EditorsCanAdmin && c.OrgRole != models.ROLE_ADMIN {
+			userIdFilter = c.SignedInUser.UserId
+		}
 	}
 
 	query := models.SearchTeamsQuery{
@@ -159,6 +162,7 @@ func (hs *HTTPServer) GetTeamByID(c *models.ReqContext) response.Response {
 		HiddenUsers:  hs.Cfg.HiddenUsers,
 	}
 
+	// TODO check if some filtering is done by the SQLStore
 	if err := hs.SQLStore.GetTeamById(c.Req.Context(), &query); err != nil {
 		if errors.Is(err, models.ErrTeamNotFound) {
 			return response.Error(404, "Team not found", err)
